@@ -27,7 +27,7 @@ export default function EventCard({ event, user }) {
       {/* Image Container */}
       <div className="relative h-48 overflow-hidden">
         <img 
-            src={`http://localhost:4000${event.image}`} 
+           src={event.image || '/default-event.jpg'} 
           alt={event.title}
           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
         />
