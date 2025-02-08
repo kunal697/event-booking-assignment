@@ -54,6 +54,124 @@ wss.on("connection", (ws) => {
   });
 });
 
+app.get("/test", (req, res) => {
+  res.json("test ok");
+});
+
+app.post("/register", async (req, res) => {
+  const { name, email, password } = req.body;
+
+  try {
+    const userDoc = await UserModel.create({
+      name,
+      email,
+      password: bcrypt.hashSync(password, bcryptSalt),
+    });
+    res.json(userDoc);
+  } catch (e) {
+    res.status(422).json(e);
+  }
+});
+
+app.post("/login", async (req, res) => {
+  try {
+    const { email, password } = req.body;
+
+    if (!email || !password) {
+      return res.status(400).json({ error: "Email and password are required" });
+    }
+
+    const userDoc = await UserModel.findOne({ email });
+    if (!userDoc) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    const passOk = bcrypt.compareSync(password, userDoc.password);
+    if (!passOk) {
+      return res.status(401).json({ error: "Wrong password" });
+    }
+
+    const tokenPayload = { email: userDoc.email, id: userDoc._id, name: userDoc.name };
+
+    jwt.sign(tokenPayload, JWT_SECRET, { expiresIn: '7d' }, (err, token) => {
+      if (err) {
+        console.error('JWT Sign error:', err);
+        return res.status(500).json({ error: "Failed to generate token" });
+      }
+
+      res.cookie("token", token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax',
+        maxAge: 7 * 24 * 60 * 60 * 1000
+      }).json({ id: userDoc._id, email: userDoc.email, name: userDoc.name });
+    });
+
+  } catch (error) {
+    console.error('Login error:', error);
+    res.status(500).json({ error: "Something went wrong" });
+  }
+});
+
+app.get("/profile", (req, res) => {
+  const { token } = req.cookies;
+  if (token) {
+    jwt.verify(token, JWT_SECRET, {}, async (err, userData) => {
+      if (err) return res.status(403).json({ error: "Unauthorized" });
+      const { name, email, _id } = await UserModel.findById(userData.id);
+      res.json({ name, email, _id });
+    });
+  } else {
+    res.status(401).json({ error: "No token provided" });
+  }
+});
+
+app.post("/logout", (req, res) => {
+  res.cookie("token", "").json(true);
+});
+
+app.post("/tickets", async (req, res) => {
+  try {
+    const ticketDetails = req.body;
+    const newTicket = new Ticket(ticketDetails);
+    await newTicket.save();
+    return res.status(201).json({ ticket: newTicket });
+  } catch (error) {
+    console.error("Error creating ticket:", error);
+    return res.status(500).json({ error: "Failed to create ticket" });
+  }
+});
+
+app.get("/tickets", async (req, res) => {
+  try {
+    const tickets = await Ticket.find();
+    res.json(tickets);
+  } catch (error) {
+    console.error("Error fetching tickets:", error);
+    res.status(500).json({ error: "Failed to fetch tickets" });
+  }
+});
+
+app.get("/tickets/user/:userId", async (req, res) => {
+  try {
+    const tickets = await Ticket.find({ userid: req.params.userId });
+    res.json(tickets);
+  } catch (error) {
+    console.error("Error fetching user tickets:", error);
+    res.status(500).json({ error: "Failed to fetch user tickets" });
+  }
+});
+
+app.delete("/tickets/:id", async (req, res) => {
+  try {
+    await Ticket.findByIdAndDelete(req.params.id);
+    res.status(204).send();
+  } catch (error) {
+    console.error("Error deleting ticket:", error);
+    res.status(500).json({ error: "Failed to delete ticket" });
+  }
+});
+
 // Routes
 app.use("/api/users", userRoutes);
 app.use("/api/events", eventRoutes);
