@@ -31,15 +31,17 @@ app.use(cors());
 app.use(express.static(path.join(__dirname, 'public')));
 
 // MongoDB Connection with Error Handling
-const MONGO_URL = process.env.MONGO_URL || "mongodb://127.0.0.1:27017/mydatabase"; // Fallback to local MongoDB
-mongoose.connect(MONGO_URL, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true
-}).then(() => {
-  console.log("Connected to MongoDB");
-}).catch((err) => {
-  console.error("MongoDB connection error:", err);
-});
+mongoose.connect(process.env.MONGO_URL)
+  .then(() => {
+    console.log("Connected to MongoDB");
+    server.listen(4000, () => {
+      console.log('Server is running on port 4000');
+    });
+  })
+  .catch((err) => {
+    console.error('MongoDB connection error:', err);
+  });
+
 
 // WebSocket Server
 
