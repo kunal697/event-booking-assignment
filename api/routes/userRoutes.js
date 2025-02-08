@@ -23,6 +23,7 @@ cloudinary.config({
 
 
 // Register - POST /api/users/register
+
 router.post("/register", async (req, res) => {
   const { name, email, password } = req.body;
 
