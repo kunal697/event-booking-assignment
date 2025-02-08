@@ -10,7 +10,7 @@ Introducing our Event Management System, a solution developed as part of our fin
 * View the event calendar.
 * Getting approval for the events.
 * Ticket Booking for the event.
-* QR Code generation for receiving tickets.
+* Real-Time information of attendies 
 
 **Technologies Used**
 * ReactJs
@@ -19,7 +19,7 @@ Introducing our Event Management System, a solution developed as part of our fin
 * MongoDB
 * NPM (Node Package Manager)
 * JWT webtoken
-* QR code
+
 
 **_Getting Started_**
 
