@@ -5,9 +5,22 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { auth } = require('../middleware/auth');
 const Event = require('../models/Event');
+// Get user's events with details
+const multer = require('multer');
+const upload = multer({ storage: multer.memoryStorage() }); 
 
 const JWT_SECRET = process.env.JWT_SECRET || "your_jwt_secret_here";
 const bcryptSalt = bcrypt.genSaltSync(10);
+
+const cloudinary = require('cloudinary').v2;
+
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET
+});
+
+
 
 // Register - POST /api/users/register
 router.post("/register", async (req, res) => {
@@ -77,51 +90,49 @@ router.post("/logout", (req, res) => {
   res.cookie('token', '').json(true);
 });
 
-// Get user's events with details
-router.get('/events', auth, async (req, res) => {
+
+
+router.post("/", auth, upload.single('image'), async (req, res) => {
   try {
-    const events = await Event.find({ owner: req.user._id })
-      .populate('attendees', 'name email')
-      .populate('owner', 'name email')
-      .sort('-createdAt');
+    const {
+      title,
+      description,
+      category,
+      eventDate,
+      eventTime,
+      location,
+      maxAttendees
+    } = req.body;
 
-    // Get additional stats for each event
-    const eventsWithStats = await Promise.all(events.map(async (event) => {
-      const pastEvent = new Date(event.eventDate) < new Date();
-      
-      return {
-        ...event.toObject(),
-        stats: {
-          totalAttendees: event.attendees.length,
-          isFull: event.currentAttendees >= event.maxAttendees,
-          spotsLeft: event.maxAttendees - event.currentAttendees,
-          status: pastEvent ? 'completed' : 'upcoming'
-        }
-      };
-    }));
+    let imageUrl = null;
+    if (req.file) {
+      const result = await cloudinary.uploader.upload_stream({ folder: 'events' }, (error, result) => {
+        if (error) throw error;
+        return result.secure_url;
+      }).end(req.file.buffer);
+      imageUrl = result;
+    }
 
-    // Group events by status
-    const groupedEvents = {
-      upcoming: eventsWithStats.filter(event => event.stats.status === 'upcoming'),
-      completed: eventsWithStats.filter(event => event.stats.status === 'completed')
-    };
-
-    res.json({
-      events: eventsWithStats,
-      grouped: groupedEvents,
-      stats: {
-        total: events.length,
-        upcoming: groupedEvents.upcoming.length,
-        completed: groupedEvents.completed.length,
-        totalAttendees: eventsWithStats.reduce((sum, event) => sum + event.attendees.length, 0)
-      }
+    const event = new Event({
+      title,
+      description,
+      category,
+      eventDate,
+      eventTime,
+      location,
+      maxAttendees: parseInt(maxAttendees),
+      owner: req.user.id,
+      image: imageUrl
     });
 
+    await event.save();
+    res.status(201).json(event);
   } catch (error) {
-    console.error('Error fetching user events:', error);
-    res.status(500).json({ error: 'Failed to fetch events' });
+    console.error('Error creating event:', error);
+    res.status(500).json({ error: 'Failed to create event', details: error.message });
   }
 });
+
 
 // Get event details for a specific user event
 router.get('/events/:eventId', auth, async (req, res) => {

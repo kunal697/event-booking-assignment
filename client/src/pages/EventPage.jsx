@@ -112,7 +112,11 @@ export default function EventPage() {
      
       <div className="relative h-96 bg-gray-900">
       <img 
+<<<<<<< HEAD
      src={event.image || '/default-event.jpg'} 
+=======
+    src={event.image || '/default-event.jpg'} 
+>>>>>>> 4820cad8332c1e09c527534e458f727880e89e12
     alt={event.title}
     className="w-full h-full max-h-96 object-contain"
   />
