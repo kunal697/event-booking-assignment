@@ -20,11 +20,10 @@ export default function CreateEvent() {
 
   const handleChange = (e) => {
     const { name, value, files } = e.target;
-    if (name === 'image') {
-      setFormData(prev => ({ ...prev, image: files[0] }));
-    } else {
-      setFormData(prev => ({ ...prev, [name]: value }));
-    }
+    setFormData((prev) => ({
+      ...prev,
+      [name]: name === 'image' ? files[0] : value
+    }));
   };
 
   const handleSubmit = async (e) => {
@@ -34,16 +33,14 @@ export default function CreateEvent() {
 
     try {
       const data = new FormData();
-      Object.keys(formData).forEach(key => {
-        if (formData[key] !== null) {
+      Object.keys(formData).forEach((key) => {
+        if (formData[key]) {
           data.append(key, formData[key]);
         }
       });
 
-      await axios.post('/api/events', data, {
-        headers: {
-          'Content-Type': 'multipart/form-data'
-        }
+      await axios.post('/api/events/events', data, {
+        headers: { 'Content-Type': 'multipart/form-data' }
       });
 
       navigate('/events');
@@ -60,150 +57,69 @@ export default function CreateEvent() {
         <div className="bg-white rounded-xl shadow-sm p-8">
           <h1 className="text-2xl font-bold text-gray-900 mb-8">Create New Event</h1>
 
-          {error && (
-            <div className="bg-red-50 text-red-600 p-4 rounded-lg mb-6">
-              {error}
-            </div>
-          )}
+          {error && <div className="bg-red-50 text-red-600 p-4 rounded-lg mb-6">{error}</div>}
 
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Event Title
-              </label>
-              <input
-                type="text"
-                name="title"
-                required
-                value={formData.title}
-                onChange={handleChange}
-                className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-              />
+              <label className="block text-sm font-medium text-gray-700 mb-2">Event Title</label>
+              <input type="text" name="title" required value={formData.title} onChange={handleChange}
+                     className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary"/>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Description
-              </label>
-              <textarea
-                name="description"
-                required
-                value={formData.description}
-                onChange={handleChange}
-                rows={4}
-                className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-              />
+              <label className="block text-sm font-medium text-gray-700 mb-2">Description</label>
+              <textarea name="description" required value={formData.description} onChange={handleChange} rows={4}
+                        className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary"/>
             </div>
 
             <div className="grid grid-cols-2 gap-6">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Category
-                </label>
-                <select
-                  name="category"
-                  required
-                  value={formData.category}
-                  onChange={handleChange}
-                  className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-                >
+                <label className="block text-sm font-medium text-gray-700 mb-2">Category</label>
+                <select name="category" required value={formData.category} onChange={handleChange}
+                        className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary">
                   <option value="">Select Category</option>
                   {Object.values(CATEGORIES).map(category => (
-                    <option key={category} value={category} className="capitalize">
-                      {category}
-                    </option>
+                    <option key={category} value={category}>{category}</option>
                   ))}
                 </select>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Location
-                </label>
-                <input
-                  type="text"
-                  name="location"
-                  required
-                  value={formData.location}
-                  onChange={handleChange}
-                  className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-                />
+                <label className="block text-sm font-medium text-gray-700 mb-2">Location</label>
+                <input type="text" name="location" required value={formData.location} onChange={handleChange}
+                       className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary"/>
               </div>
             </div>
 
             <div className="grid grid-cols-2 gap-6">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Date
-                </label>
-                <input
-                  type="date"
-                  name="eventDate"
-                  required
-                  value={formData.eventDate}
-                  onChange={handleChange}
-                  className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-                />
+                <label className="block text-sm font-medium text-gray-700 mb-2">Date</label>
+                <input type="date" name="eventDate" required value={formData.eventDate} onChange={handleChange}
+                       className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary"/>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Time
-                </label>
-                <input
-                  type="time"
-                  name="eventTime"
-                  required
-                  value={formData.eventTime}
-                  onChange={handleChange}
-                  className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-                />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-6">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Maximum Attendees
-                </label>
-                <input
-                  type="number"
-                  name="maxAttendees"
-                  required
-                  min="1"
-                  value={formData.maxAttendees}
-                  onChange={handleChange}
-                  className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-                />
+                <label className="block text-sm font-medium text-gray-700 mb-2">Time</label>
+                <input type="time" name="eventTime" required value={formData.eventTime} onChange={handleChange}
+                       className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary"/>
               </div>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Event Image
-              </label>
-              <input
-                type="file"
-                name="image"
-                accept="image/*"
-                onChange={handleChange}
-                className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-              />
+              <label className="block text-sm font-medium text-gray-700 mb-2">Max Attendees</label>
+              <input type="number" name="maxAttendees" required min="1" value={formData.maxAttendees}
+                     onChange={handleChange} className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary"/>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Event Image</label>
+              <input type="file" name="image" accept="image/*" onChange={handleChange}
+                     className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary"/>
             </div>
 
             <div className="flex justify-end gap-4">
-              <button
-                type="button"
-                onClick={() => navigate(-1)}
-                className="px-6 py-2 border border-gray-200 rounded-lg hover:bg-gray-50"
-              >
-                Cancel
-              </button>
-              <button
-                type="submit"
-                disabled={loading}
-                className="px-6 py-2 bg-primary text-white rounded-lg hover:bg-primary-dark disabled:opacity-50"
-              >
+              <button type="button" onClick={() => navigate('/events')} className="px-6 py-2 border rounded-lg">Cancel</button>
+              <button type="submit" disabled={loading} className="px-6 py-2 bg-primary text-white rounded-lg">
                 {loading ? 'Creating...' : 'Create Event'}
               </button>
             </div>
@@ -213,4 +129,3 @@ export default function CreateEvent() {
     </div>
   );
 }
-

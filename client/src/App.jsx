@@ -19,7 +19,7 @@ import CreateEvent from './pages/CreateEvent'
 import BrowseEvents from './pages/BrowseEvents'
 import MyEvents from './pages/MyEvents'
 
-axios.defaults.baseURL = 'http://localhost:4000/';
+axios.defaults.baseURL = 'https://event-booking-assignment.vercel.app/';
 axios.defaults.withCredentials=true;
 
 export default function App() {
