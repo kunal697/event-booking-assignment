@@ -26,7 +26,13 @@ const JWT_SECRET = process.env.JWT_SECRET || "your_jwt_secret_here";
 // Middleware
 app.use(express.json());
 app.use(cookieParser());
-app.use(cors());
+app.use(cors({
+  origin: "https://event-mang.netlify.app", // Your frontend URL
+  credentials: true, // Allow cookies & credentials
+  methods: ["GET", "POST", "PUT", "DELETE"], // Allowed methods
+  allowedHeaders: ["Content-Type", "Authorization"], // Allowed headers
+}));
+
 
 // MongoDB Connection
 mongoose.connect(process.env.MONGO_URL)
