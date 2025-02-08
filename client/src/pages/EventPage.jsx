@@ -112,7 +112,7 @@ export default function EventPage() {
      
       <div className="relative h-96 bg-gray-900">
       <img 
-    src={`http://localhost:4000${event.image}`} 
+    src={event.image || '/default-event.jpg'} 
     alt={event.title}
     className="w-full h-full max-h-96 object-contain"
   />
