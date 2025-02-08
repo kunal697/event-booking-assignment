@@ -23,7 +23,6 @@ cloudinary.config({
 
 
 // Register - POST /api/users/register
-
 router.post("/register", async (req, res) => {
   const { name, email, password } = req.body;
 
@@ -43,36 +42,36 @@ router.post("/register", async (req, res) => {
 router.post("/login", async (req, res) => {
   try {
     const { email, password } = req.body;
+    const user = await User.findOne({ email });
     
-    if (!email || !password) {
-      return res.status(400).json({ error: "Email and password are required" });
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
     }
 
-    const userDoc = await User.findOne({ email });
-    if (!userDoc) {
-      return res.status(404).json({ error: "User not found" });
-    }
-
-    const passOk = bcrypt.compareSync(password, userDoc.password);
+    const passOk = bcrypt.compareSync(password, user.password);
     if (!passOk) {
-      return res.status(401).json({ error: "Wrong password" });
+      return res.status(401).json({ error: 'Wrong password' });
     }
 
-    jwt.sign({
-      email: userDoc.email,
-      id: userDoc._id,
-      name: userDoc.name
-    }, JWT_SECRET, {}, (err, token) => {
-      if (err) throw err;
-      res.cookie('token', token).json({
-        id: userDoc._id,
-        email: userDoc.email,
-        name: userDoc.name,
-      });
+    const token = jwt.sign({ 
+      id: user._id,
+      email: user.email 
+    }, process.env.JWT_SECRET);
+
+    res.cookie('token', token, {
+      httpOnly: true,
+      secure: true, // Enable for HTTPS
+      sameSite: 'none', // Important for cross-site cookies
+      maxAge: 30 * 24 * 60 * 60 * 1000 // 30 days
+    });
+
+    res.json({
+      id: user._id,
+      email: user.email,
+      name: user.name
     });
   } catch (error) {
-    console.error('Login error:', error);
-    res.status(500).json({ error: "Something went wrong" });
+    res.status(500).json({ error: 'Login failed' });
   }
 });
 
