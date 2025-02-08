@@ -25,21 +25,10 @@ const JWT_SECRET = process.env.JWT_SECRET || "your_jwt_secret_here";
 
 app.use(express.json());
 app.use(cookieParser());
-app.use(
-   cors({
-      credentials: true,
-      origin: "http://localhost:5173",
-   })
-);
+app.use(cors());
 
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
 app.use(express.static(path.join(__dirname, 'public')));
-
-// Ensure uploads directory exists
-const uploadDir = path.join(__dirname, 'uploads');
-if (!fs.existsSync(uploadDir)) {
-  fs.mkdirSync(uploadDir);
-}
 
 mongoose.connect(process.env.MONGO_URL)
   .then(() => {
@@ -51,32 +40,7 @@ mongoose.connect(process.env.MONGO_URL)
     console.error('MongoDB connection error:', err);
   });
 
-const storage = multer.diskStorage({
-   destination: function (req, file, cb) {
-      cb(null, 'uploads/');
-   },
-   filename: function (req, file, cb) {
-      const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-      cb(null, uniqueSuffix + path.extname(file.originalname));
-   }
-});
 
-const fileFilter = (req, file, cb) => {
-   const allowedTypes = ['image/jpeg', 'image/png', 'image/gif'];
-   if (allowedTypes.includes(file.mimetype)) {
-      cb(null, true);
-   } else {
-      cb(new Error('Invalid file type. Only JPEG, PNG and GIF are allowed.'));
-   }
-};
-
-const upload = multer({
-   storage: storage,
-   fileFilter: fileFilter,
-   limits: {
-      fileSize: 5 * 1024 * 1024 // 5MB
-   }
-});
 
 const server = http.createServer(app);
 
