@@ -9,10 +9,11 @@ const cloudinary = require('cloudinary').v2;
 const upload = multer({ storage: multer.memoryStorage() });
 
 cloudinary.config({
-  cloud_name: "dq3ro4o3c",
-  api_key: "313717573924726",
-  api_secret: "_isQUJW480mBSsgmwn5mmvVsrfQ"
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET
 });
+
 
 // Get all events
 router.get('/', async (req, res) => {
